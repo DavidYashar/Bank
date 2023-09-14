@@ -1,9 +1,10 @@
 import axios from 'axios';
 import {useState} from 'react';
 import {isEmail, isInt} from 'validator';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Main = () => {
-
+    const history = useNavigate();
     const [names, setNames] = useState('');
     const [email, setEmail] = useState('');
     const [socialSecurity, setSocialSecurity] = useState('');
@@ -40,7 +41,7 @@ const Main = () => {
    
 
        const checkSecurity = ()=> {
-        if(isInt(socialSecurity)){
+        if(isInt(socialSecurity) && socialSecurity.length ===8){
             setSocialSecurity(socialSecurity);
             console.log('social security is valid')
             return true;
@@ -54,7 +55,7 @@ const Main = () => {
 
 
        const checkPass = ()=> {
-        if(isInt(password)){
+        if(isInt(password) && password.length === 6){
             setPassword(password)
             console.log('password is valid')
             return true;
@@ -88,7 +89,13 @@ const handleClick = ()=> {
             socialSecurity: socialSecurity,
             password:password
     
-        }).then(res => console.log(res))
+        }).then(res =>{
+
+            if(res.data === 'registered'){
+                history('/Login', {state: {id: email}})
+            }
+            console.log(res)
+        })
         
         .catch(err => console.log(err))
         setEmail('')
@@ -133,12 +140,12 @@ const handleClick = ()=> {
                 value={password}
                 onChange={e => setPassword(e.target.value) }/><br />
 
-                <button onClick={handleClick}>Submit</button>
+                <button onClick={handleClick}>Submit</button><br />
 
 
 
 
-         
+             <Link to='/Login'>Or Login</Link>
 
 
             {/* <h2>click to send data</h2>
