@@ -1,10 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const sessions = require('express-session');
 const Customer = require('./module/customer');
 const bcrypt = require('bcrypt');
+const store = new sessions.MemoryStore();
 
 const cors = require('cors');
+// const sessions = require('express-session');
 server = express();
 // const bodyParser = require("body-parser");
 
@@ -17,7 +21,11 @@ mongoose.connect(DB)
 
 .catch((err)=> console.log(err))
 
-server.use(cors()); 
+const corsOptions = {
+    origin: 'http://localhost:3000',
+    credentials: true
+}
+server.use(cors(corsOptions)); 
 server.use(express.json());
 
 
@@ -28,12 +36,39 @@ if(server.listen(3100)){
 }
 
 
+// initialize session
 
 
 
+server.use(sessions({
+    secret: 'Thisiauthenticationsecretkeyforlogin',
+    cookie:{
+        maxAge: 30000
+    },
+    saveUninitialized:true,
+  resave: false,
+  store
+}))
+
+server.use(cookieParser());
 
 
-server.post('/', async (req, res)=> {
+// server.use((req,res, next)=> {
+//     console.log(store)
+//     console.log(`${req.method}-${req.url}}`);
+//     next();
+// })
+
+
+// const isAuth = (req, res, next) => {
+//     if(req.session.isAuth){
+//         next()
+//     }else{
+//         console.log('not authenticated')
+//     }
+// }
+// const session= {};
+server.post('/',  async (req, res)=> {
     const {email, password}= req.body;
     
     try{
@@ -49,8 +84,35 @@ server.post('/', async (req, res)=> {
                     console.error(err);
                     res.status(500).json('internal server error');
                 }else if(result){
-                    console.log(user+ ' found')
-                    res.json('welcome');
+                    // if(req.session.authenticated){
+                        
+                    //    res.json(req.session);
+                       
+                    // }
+                    // console.log(store);
+                    req.session.userId = user.email;
+                    console.log(user+ ' found');
+
+                    res.json('welcome'+user);
+                //    const sessionToken = uuid.v4();
+                //    const Expires = new Date().setMinutes(new Date().getMinutes() +5)
+              
+                //       session[sessionToken]= {
+                //         Expires,
+                //         userId: user.email
+                //       };
+                
+                // let session = req.session;
+                //    session.userId = req.session.email;
+                
+                   console.log(req.session)
+                   console.log(req.session.id)
+                //       res.cookie( req.session);
+
+                    // console.log(req.session);
+                    
+                    // res.json(req.session);
+                    
                 }else{
                     console.log('password incorrect');
                     res.json('password incorrect')
@@ -64,9 +126,6 @@ server.post('/', async (req, res)=> {
         res.status(500).json('Internal Server Error');
     }
     
-
-
-   
 })
 
 
@@ -84,7 +143,8 @@ try{
         names: req.body.names,
         email: req.body.email,
         socialSecurity: req.body.socialSecurity,
-        password:  hashed
+        password:  hashed,
+        balance:0
     }
 
     
@@ -101,9 +161,36 @@ try{
 }
     
 
-   
-    // res.send('ok, received');
-    // console.log('saved')
-    // res.json(body.names);
+})
 
+
+
+server.post('/deposit', async (req, res) => {
+    console.log(req.body)
+    console.log('cookie is '+req.cookie)
+    const {balance} = req.body;
+    const userId = req.session.userId;
+
+    try{
+
+        const user = await Customer.findOne({email: userId});
+
+        if(!user){
+            console.log(user+ 'not found')
+            console.log(balance)
+            console.log(userId)
+            return res.json('user Not found');
+        }else{
+            user.balance+= parseFloat(balance);
+
+            await user.save();
+            return res.json('deposit successful');
+        }
+
+   
+    }catch(e){
+      
+        console.log(e);
+        return res.status(500).json('internal server error');
+    }
 })
