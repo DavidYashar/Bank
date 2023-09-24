@@ -1,13 +1,12 @@
-import { Link, useNavigate, useLocation} from "react-router-dom";
-import { useState } from "react";
+import { Link} from "react-router-dom";
+import { useState} from "react";
 import axios from "axios";
 import {isEmail, isInt} from 'validator';
 
 
-
 const Login = () => {
-    const history = useNavigate();
-    const location = useLocation();
+    // const history = useNavigate();
+    // const location = useLocation();
     const[password, setPassword] = useState('');
     const [email, setEmail]= useState('');
 
@@ -51,10 +50,18 @@ const Login = () => {
         axios.post('http://localhost:3100/', {
             email: email,
              password: password
-         }).then(res=> {
+         }
+         ,{
+            withCredentials: true,
+         }
+         ).then(res=> 
+            // res.data)
+          {
               
-             if(res.data === 'welcome'){
-                 history('/Home', {state: {id: email}})
+             if(res.data.includes('welcome') ){
+                setTimeout(()=> {
+                    window.location.href= '/Atm'
+                }, 1000)
          } else{
              console.log('user not found')
          }
@@ -68,9 +75,9 @@ const Login = () => {
 
     return ( 
         <div className="login">
-        <h2>Welcome {location.state.id}, please log in </h2>
+        <h2>Welcome, please log in </h2>
         <div className="usePass">
-            <label htmlFor="emails">Email:</label><br />
+            <label htmlFor="email">Email:</label><br />
             <input type="text"
              name="emails"
               id="emails"
@@ -78,7 +85,7 @@ const Login = () => {
                  onChange={e=> setEmail(e.target.value)}
                  /><br />
 
-            <label htmlFor="passwords">password:</label><br />
+            <label htmlFor="password">password:</label><br />
             <input type="password"
              name="password"
               id="password" 
@@ -88,7 +95,7 @@ const Login = () => {
 
             <button onClick={login}>Submit</button><br />
 
-            <Link to='/'>Or sign up</Link>
+            <Link to='/SignUp'>Or sign up</Link>
         </div>
         </div>
      );
