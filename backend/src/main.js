@@ -9,6 +9,7 @@ const Main = () => {
     const [email, setEmail] = useState('');
     const [socialSecurity, setSocialSecurity] = useState('');
     const [password, setPassword]= useState('');
+  
 
 
 
@@ -77,14 +78,16 @@ const handleClick = ()=> {
             socialSecurity: socialSecurity,
             password:password
     
-        }).then(res => res.data)
-        // {
+        }).then(res =>{
+           if(res.data === 'registered'){
+            alert('registration successful')
 
-        //     if(res.data === 'registered'){
-        //         history('/SignUp', {state: {id: email}})
-        //     }
-        //     console.log(res)
-        // })
+            setTimeout(()=>{
+                window.location.href='/'
+            }, 1000)
+           }
+        } )
+      
         
         .catch(err => console.log(err))
         setEmail('')
@@ -129,12 +132,13 @@ const handleClick = ()=> {
                 value={password}
                 onChange={e => setPassword(e.target.value) }/><br />
 
-                <button onClick={handleClick}>Submit</button><br />
+                <button onClick={handleClick}>Submit</button><br /><br/>
 
 
+               
 
-
-             <Link to='/'>Or Login</Link>
+             <Link to='/'>Or Login</Link><br />
+        
 
 
             {/* <h2>click to send data</h2>
