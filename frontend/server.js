@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-// const jwt = require('jsonwebtoken');
+
+const Decimal128 = mongoose.Types.Decimal128;
 const cookieParser = require('cookie-parser');
 const sessions = require('express-session');
 const Customer = require('./module/customer');
@@ -43,7 +44,7 @@ if(server.listen(3100)){
 server.use(sessions({
     secret: 'Thisiauthenticationsecretkeyforlogin',
     cookie:{
-        maxAge: 30000
+        maxAge: 150000
     },
     saveUninitialized:true,
   resave: false,
@@ -138,13 +139,14 @@ server.post('/receive', async (req, res)=> {
 try{
 
     const hashed =await bcrypt.hash(req.body.password, 10);
+    const newBalance = Decimal128.fromString('0.00');
 
     const data = {
         names: req.body.names,
         email: req.body.email,
         socialSecurity: req.body.socialSecurity,
         password:  hashed,
-        balance:0
+        balance: newBalance
     }
 
     
@@ -167,7 +169,7 @@ try{
 
 server.post('/deposit', async (req, res) => {
     console.log(req.body)
-    console.log('cookie is '+req.cookie)
+    // console.log('cookie is '+req.cookie)
     const {balance} = req.body;
     const userId = req.session.userId;
 
@@ -181,10 +183,24 @@ server.post('/deposit', async (req, res) => {
             console.log(userId)
             return res.json('user Not found');
         }else{
-            user.balance+= parseFloat(balance);
-
+           
+            console.log('Received balance:', balance);
+            
+            const Balance22 = user.balance.toString();
+            const Balance1 = Decimal128.fromString(balance)
+            // const Balance1 = parseFloat(balance)
+            const Balance2 = Decimal128.fromString(Balance22);
+            user.balance= parseFloat(Balance1) + parseFloat(Balance2)
+            console.log('User balance:', user.balance);
+     
             await user.save();
-            return res.json('deposit successful');
+            
+            const response = {
+                names: user.names,
+                balance: user.balance.toString()
+            }
+
+            return res.json(response);
         }
 
    
@@ -194,3 +210,156 @@ server.post('/deposit', async (req, res) => {
         return res.status(500).json('internal server error');
     }
 })
+
+
+
+
+//withdraw api
+server.post('/withdraw', async (req, res) => {
+    console.log(req.body)
+    // console.log('cookie is '+req.cookie)
+    const {balance} = req.body;
+    const userId = req.session.userId;
+
+    try{
+
+        const user = await Customer.findOne({email: userId});
+
+        if(!user){
+            console.log(user+ 'not found')
+            console.log(balance)
+            console.log(userId)
+            return res.json('user Not found');
+        }else if(balance >= parseFloat(user.balance.toString())){
+            console.log('not enough fund')
+           return res.json('not enough fund')
+          }else{
+
+            console.log('Received withdraw:', balance);
+            
+            const Balance22 = user.balance.toString();
+            const Balance1 = Decimal128.fromString(balance)
+            // const Balance1 = parseFloat(balance)
+            const Balance2 = Decimal128.fromString(Balance22);
+            user.balance= parseFloat(Balance2).toFixed(2) - parseFloat(Balance1).toFixed(2)
+           
+            console.log('User balance:', user.balance);
+     
+            await user.save();
+            
+            const response = {
+                names: user.names,
+                balance: user.balance.toString()
+            }
+
+            return res.json(response);
+          }
+            // console.log('Received withdraw:', balance);
+            
+            // const Balance22 = user.balance.toString();
+            // const Balance1 = Decimal128.fromString(balance)
+            // // const Balance1 = parseFloat(balance)
+            // const Balance2 = Decimal128.fromString(Balance22);
+            // user.balance= parseFloat(Balance2).toFixed(2) - parseFloat(Balance1).toFixed(2)
+            // console.log('User balance:', user.balance);
+     
+            // await user.save();
+            
+            // const response = {
+            //     names: user.names,
+            //     balance: user.balance.toString()
+            // }
+
+            // return res.json(response);
+    
+
+   
+    }catch(e){
+      
+        console.log(e);
+        return res.status(500).json('internal server error');
+    }
+})
+
+
+
+
+
+
+//transfer API
+
+server.post('/transfer', async (req, res) => {
+    console.log(req.body)
+    // console.log('cookie is '+req.cookie)
+    const {socialSecurity1} = req.body.socialSecurity1;
+    const {amount1} = req.body.amount1;
+
+    const userId = req.session.userId;
+
+    try{
+
+        const sender = await Customer.findOne({email: userId});
+        const receiver = await Customer.findOne({socialSecurity: socialSecurity1})
+        if(!sender){
+            console.log(sender+ 'not found')
+            
+            console.log(userId)
+            return res.json('sender Not found');
+        }else if(!receiver){
+            console.log(receiver+ 'not found');
+            return res.json('rec not exists');
+
+        }else if(amount1 >= parseFloat(sender.balance.toString())){
+            console.log('not enough fund');
+            return res.json('fund not enough')
+        }else{
+            console.log('Received transfer amount:', amount1);
+
+
+            const senderBalance = sender.balance.toString();
+            const senderFinal = Decimal128.fromString(senderBalance);
+
+            const receiverBalance = receiver.balance.toString();
+            const receiverFinal = Decimal128.fromString(receiverBalance);
+
+
+            const amountTransfer = Decimal128.fromString(amount1)
+            receiver.balance = parseFloat(receiverFinal) + parseFloat(amountTransfer)
+            await receiver.save();
+            console.log('receiver balance:', receiver.balance);
+
+            sender.balance= parseFloat(senderFinal) - parseFloat(amountTransfer)
+            console.log('sender balance:', sender.balance);
+     
+            await sender.save();
+        }
+
+            // console.log('Received balance:', balance);
+            
+            // const Balance22 = user.balance.toString();
+            // const Balance1 = Decimal128.fromString(balance)
+            // // const Balance1 = parseFloat(balance)
+            // const Balance2 = Decimal128.fromString(Balance22);
+            // user.balance= parseFloat(Balance1) + parseFloat(Balance2)
+            // console.log('User balance:', user.balance);
+     
+            // await user.save();
+            
+            const response = {
+                senderName: sender.names,
+                senderBalance: sender.balance.toString(),
+                receiverName: receiver.names
+                
+            }
+
+            return res.json(response);
+        // }
+
+   
+    }catch(e){
+      
+        console.log(e);
+        return res.status(500).json('internal server error');
+    }
+})
+
