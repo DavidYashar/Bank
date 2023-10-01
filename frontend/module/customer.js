@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
-
+const Decimal = require('decimal.js');
 
 const customerSchema = new schema({
     names:{
@@ -22,8 +22,9 @@ const customerSchema = new schema({
         
     },
     balance: {
-        type: Number,
-        default: 0
+        type: mongoose.Types.Decimal128,
+        
+       
     }
 }, {timestamps: true});
 
