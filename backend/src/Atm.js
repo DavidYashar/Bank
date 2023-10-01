@@ -1,4 +1,4 @@
-// import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Atm = () => {
 
@@ -40,7 +40,7 @@ const Atm = () => {
           </div><br />
 
           <div className="eject">
-            <button>Eject</button>
+           <Link to={'/'}><button>Eject</button></Link> 
           </div>
 
 
