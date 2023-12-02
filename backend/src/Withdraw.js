@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-
 const Withdraw = () => {
     const [withdraw, setWithdraw] = useState('');
     const [balance, setBalance] = useState();
@@ -31,6 +30,9 @@ const Withdraw = () => {
             setNames1(res.data.names);
         setBalance(res.data.balance);
         console.log(res.data.names, res.data.balance)
+        setTimeout(()=> {
+            window.location.href='/Atm'
+        }, 3000)
         }
         
      })
