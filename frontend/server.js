@@ -44,7 +44,7 @@ if(server.listen(3100)){
 server.use(sessions({
     secret: 'Thisiauthenticationsecretkeyforlogin',
     cookie:{
-        maxAge: 150000
+        maxAge: 1500000
     },
     saveUninitialized:true,
   resave: false,
@@ -54,21 +54,6 @@ server.use(sessions({
 server.use(cookieParser());
 
 
-// server.use((req,res, next)=> {
-//     console.log(store)
-//     console.log(`${req.method}-${req.url}}`);
-//     next();
-// })
-
-
-// const isAuth = (req, res, next) => {
-//     if(req.session.isAuth){
-//         next()
-//     }else{
-//         console.log('not authenticated')
-//     }
-// }
-// const session= {};
 server.post('/',  async (req, res)=> {
     const {email, password}= req.body;
     
@@ -291,8 +276,8 @@ server.post('/withdraw', async (req, res) => {
 server.post('/transfer', async (req, res) => {
     console.log(req.body)
     // console.log('cookie is '+req.cookie)
-    const {socialSecurity1} = req.body.socialSecurity1;
-    const {amount1} = req.body.amount1;
+    const socialSecurity1 = req.body.socialSecurity1;
+    const amount1 = req.body.amount1;
 
     const userId = req.session.userId;
 
@@ -301,7 +286,7 @@ server.post('/transfer', async (req, res) => {
         const sender = await Customer.findOne({email: userId});
         const receiver = await Customer.findOne({socialSecurity: socialSecurity1})
         if(!sender){
-            console.log(sender+ 'not found')
+            console.log(sender+ ' not found')
             
             console.log(userId)
             return res.json('sender Not found');
@@ -334,16 +319,6 @@ server.post('/transfer', async (req, res) => {
             await sender.save();
         }
 
-            // console.log('Received balance:', balance);
-            
-            // const Balance22 = user.balance.toString();
-            // const Balance1 = Decimal128.fromString(balance)
-            // // const Balance1 = parseFloat(balance)
-            // const Balance2 = Decimal128.fromString(Balance22);
-            // user.balance= parseFloat(Balance1) + parseFloat(Balance2)
-            // console.log('User balance:', user.balance);
-     
-            // await user.save();
             
             const response = {
                 senderName: sender.names,
@@ -353,7 +328,7 @@ server.post('/transfer', async (req, res) => {
             }
 
             return res.json(response);
-        // }
+     
 
    
     }catch(e){
