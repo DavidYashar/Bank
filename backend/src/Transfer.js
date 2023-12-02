@@ -34,9 +34,16 @@ const Transfer = () => {
 
                 }else{
                     alert('transfer success.\n Amount sent: '+ amount1);
+
                     setSenderName(res.data.senderName)
                     setSenderBalance(res.data.senderBalance)
                     setReceiverName(res.data.receiverName)
+                    setTimeout(()=> {
+                        window.location.href='/Atm'
+                    }, 5000)
+                   
+                    
+                  
                 }
             }).catch(err => console.log(err))
         }
