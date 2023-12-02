@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-
+import { Link } from "react-router-dom";
 const Transfer = () => {
     const[socialSecurity1, setSocialSecurity1] = useState('');
     const[amount1, setAmount1] = useState('');
@@ -8,13 +8,16 @@ const Transfer = () => {
     const [senderBalance, setSenderBalance] = useState('');
     const [receiverName, setReceiverName] = useState('')
 
-    const handleSubmit = (e)=> {
-        e.preventDefault();
+    const handleSubmit = ()=> {
+      
 
         if( socialSecurity1 !== '' && amount1 !== ''){
             axios.post('http://localhost:3100/transfer', {
-                socialSecurity1: socialSecurity1,
+                socialSecurity1: Number(socialSecurity1),
                 amount1: parseFloat(amount1).toFixed(2)
+        },{
+            withCredentials: true
+        
             })
             .then(res => {
                 if(res.data === 'sender Not found'){
@@ -59,8 +62,8 @@ const Transfer = () => {
         onChange={e=> setAmount1(e.target.value)}
         /> <br />
 
-        <button onSubmit={handleSubmit}>Send</button> <br /><br />
-
+        <button onClick={handleSubmit}>Send</button> <br /><br />
+        <Link to={'/Atm'}>return to Atm page</Link>
         <div className="receipt">
           <h4>transaction info</h4> <br />
           <h5>sender name: {senderName}</h5><br />
